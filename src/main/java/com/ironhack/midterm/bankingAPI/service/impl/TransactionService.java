@@ -1,7 +1,9 @@
 package com.ironhack.midterm.bankingAPI.service.impl;
 
+import com.ironhack.midterm.bankingAPI.builders.TransactionConfirmationBuilder;
 import com.ironhack.midterm.bankingAPI.dao.accounts.Account;
 import com.ironhack.midterm.bankingAPI.dao.transactions.Transaction;
+import com.ironhack.midterm.bankingAPI.dto.TransactionConfirmationDTO;
 import com.ironhack.midterm.bankingAPI.dto.TransactionDTO;
 import com.ironhack.midterm.bankingAPI.repository.accounts.AccountRepository;
 import com.ironhack.midterm.bankingAPI.repository.roles.UserRepository;
@@ -26,7 +28,7 @@ public class TransactionService implements ITransactionService {
     @Autowired
     AccountRepository accountRepository;
 
-    public Transaction transferFunds(TransactionDTO transactionDTO, String username) {
+    public TransactionConfirmationDTO transferFunds(TransactionDTO transactionDTO, String username) {
         Optional<Account> senderAccount =accountRepository.findById(transactionDTO.getSenderId());
         //validate if the sender account exists
         if (senderAccount.isEmpty()){
@@ -89,7 +91,7 @@ public class TransactionService implements ITransactionService {
     }
     //Moving funds, creating objects and saving them
     @Transactional
-    private Transaction transferVerifiedFunds(TransactionDTO transactionDTO){
+    private TransactionConfirmationDTO transferVerifiedFunds(TransactionDTO transactionDTO){
         //Transfer money
         Optional<Account> receiver = accountRepository.findById(transactionDTO.getReceiverId());
         if (receiver.isEmpty()){
@@ -109,7 +111,7 @@ public class TransactionService implements ITransactionService {
         transactionRepository.save(transaction);
         accountRepository.save(sender.get());
         accountRepository.save(receiver.get());
-        //End transaction
-        return transaction;
+        //Build and return transaction confirmation
+        return TransactionConfirmationBuilder.buildForAccountHolders(transactionDTO,receiver.get().getPrimaryOwner().getName(), transaction.getTransactionDate());
     }
 }
