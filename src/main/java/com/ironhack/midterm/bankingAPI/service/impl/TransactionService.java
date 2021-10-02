@@ -73,17 +73,21 @@ public class TransactionService implements ITransactionService {
         }
         //Check for fraud - 2 transactions in less than second.
         List<Transaction> userTransactions = transactionRepository.findBySenderOrderByTransactionDateDesc(transactionDTO.getSenderId());
-        if (userTransactions.size()!=0 && userTransactions.get(0).getTransactionDate().getTime()-new Date().getTime()<1000){
+        if (userTransactions.size()!=0){
+            long millisecondsSinceLastUserTransaction = new Date().getTime()-userTransactions.get(0).getTransactionDate().getTime();
+            if (millisecondsSinceLastUserTransaction<1000){
             senderAccount.get().freezeAccount();
             accountRepository.save(senderAccount.get());
+            }
         }
         //Checking one more time, because Credit Cards cannot be frozen and the transaction continues
         if (!senderAccount.get().isActive()){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Fraud detected, freezing account");
         }
-        //Here everything happens
+        //code with @Transactional annotation separated to own method
         return transferVerifiedFunds(transactionDTO);
     }
+    //Moving funds, creating objects and saving them
     @Transactional
     private Transaction transferVerifiedFunds(TransactionDTO transactionDTO){
         //Transfer money
@@ -91,11 +95,13 @@ public class TransactionService implements ITransactionService {
         if (receiver.isEmpty()){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"This shouldn't have happened!");
         }
+        //Adding balance to the receiver account
         receiver.get().setBalance(receiver.get().getBalance().add(transactionDTO.getAmountTransferred()));
         Optional<Account> sender = accountRepository.findById(transactionDTO.getSenderId());
         if (sender.isEmpty()){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"This shouldn't have happened!");
         }
+        //subtracting funds from the sender account, it was verified that he has sufficient balance
         sender.get().setBalance(sender.get().getBalance().subtract(transactionDTO.getAmountTransferred()));
         //Build transaction object
         Transaction transaction = new Transaction(sender.get(),receiver.get(),transactionDTO.getAmountTransferred());

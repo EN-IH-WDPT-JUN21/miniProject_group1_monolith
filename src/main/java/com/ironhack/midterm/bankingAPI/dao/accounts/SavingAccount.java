@@ -62,4 +62,8 @@ public class SavingAccount extends Account{
     public void freezeAccount() {
         setStatus(Status.FROZEN);
     }
+    @Override
+    public void activateAccount() {
+        setStatus(Status.ACTIVE);
+    }
 }

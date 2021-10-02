@@ -1,8 +1,10 @@
 package com.ironhack.midterm.bankingAPI.dao.transactions;
 
 import com.ironhack.midterm.bankingAPI.dao.accounts.Account;
-import com.ironhack.midterm.bankingAPI.dao.roles.User;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

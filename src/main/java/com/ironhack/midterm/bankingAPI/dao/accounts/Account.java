@@ -51,4 +51,5 @@ public class Account {
 
     public boolean isActive(){return true;}
     public void freezeAccount(){}
+    public void activateAccount(){}
 }

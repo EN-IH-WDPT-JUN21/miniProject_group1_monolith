@@ -11,4 +11,6 @@ public interface IAccountService {
     Account findAccountById(Long id);
     List<Account> findAllUserAccountsByUsername(String username);
     Account updateBalanceById(Long id, BigDecimal balance);
+
+    Account activateAccount(Long id);
 }

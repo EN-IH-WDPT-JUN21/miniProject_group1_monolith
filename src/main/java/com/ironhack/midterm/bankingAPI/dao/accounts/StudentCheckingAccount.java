@@ -48,4 +48,8 @@ public class StudentCheckingAccount extends Account {
     public void freezeAccount() {
         setStatus(Status.FROZEN);
     }
+    @Override
+    public void activateAccount() {
+        setStatus(Status.ACTIVE);
+    }
 }

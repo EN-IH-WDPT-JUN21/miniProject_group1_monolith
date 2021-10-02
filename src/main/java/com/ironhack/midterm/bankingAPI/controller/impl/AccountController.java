@@ -2,7 +2,7 @@ package com.ironhack.midterm.bankingAPI.controller.impl;
 
 import com.ironhack.midterm.bankingAPI.controller.interfaces.IAccountController;
 import com.ironhack.midterm.bankingAPI.dao.accounts.Account;
-import com.ironhack.midterm.bankingAPI.service.impl.AccountService;
+import com.ironhack.midterm.bankingAPI.service.interfaces.IAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/v1")
 public class AccountController implements IAccountController {
     @Autowired
-    AccountService accountService;
+    IAccountService accountService;
 
     @GetMapping("/admin/account")
     @ResponseStatus(HttpStatus.OK)
@@ -43,4 +43,12 @@ public class AccountController implements IAccountController {
     public Account updateBalanceById(@PathVariable("id") Long id,@RequestBody BigDecimal balance) {
         return accountService.updateBalanceById(id, balance);
     }
+
+    @PatchMapping("/admin/activate/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Account activateAccount(@PathVariable Long id) {
+        return accountService.activateAccount(id);
+    }
+
+
 }

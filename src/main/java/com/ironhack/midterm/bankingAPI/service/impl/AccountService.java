@@ -63,4 +63,14 @@ public class AccountService implements IAccountService {
             return accountRepository.save(account.get());
         }
     }
+
+    public Account activateAccount(Long id) {
+        Optional<Account> account = accountRepository.findById(id);
+        if (account.isEmpty()){
+            throw new ResponseStatusException(BAD_REQUEST,"Account not found!");
+        }else{
+            account.get().activateAccount();
+            return accountRepository.save(account.get());
+        }
+    }
 }

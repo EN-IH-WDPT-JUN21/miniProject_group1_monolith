@@ -10,4 +10,5 @@ public interface IAccountController {
     Account findAccountById(Long id);
     List<Account> findAllUserAccounts();
     Account updateBalanceById(Long id, BigDecimal balance);
+    Account activateAccount(Long id);
 }

@@ -49,6 +49,11 @@ public class CheckingAccount extends Account {
     }
 
     @Override
+    public void activateAccount() {
+        setStatus(Status.ACTIVE);
+    }
+
+    @Override
     public void freezeAccount() {
         setStatus(Status.FROZEN);
     }
