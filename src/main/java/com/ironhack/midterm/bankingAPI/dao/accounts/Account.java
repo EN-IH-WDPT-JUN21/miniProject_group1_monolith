@@ -48,4 +48,7 @@ public abstract class Account {
         this.primaryOwner = primaryOwner;
         this.penaltyFee = new BigDecimal("40");
     }
+
+    public boolean isActive(){return true;}
+    public void freezeAccount(){}
 }

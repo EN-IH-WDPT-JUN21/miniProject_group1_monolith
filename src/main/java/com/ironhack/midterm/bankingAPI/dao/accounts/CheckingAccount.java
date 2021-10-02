@@ -42,4 +42,14 @@ public class CheckingAccount extends Account {
         this.creationDate = creationDate;
         this.status = status;
     }
+
+    @Override
+    public boolean isActive() {
+        return status.equals(Status.ACTIVE);
+    }
+
+    @Override
+    public void freezeAccount() {
+        setStatus(Status.FROZEN);
+    }
 }
