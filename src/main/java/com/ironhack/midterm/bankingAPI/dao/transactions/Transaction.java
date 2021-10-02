@@ -18,11 +18,11 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne()
-    @JoinColumn(name = "sender_account_id",insertable=false, updatable=false)
+    @ManyToOne
+    @JoinColumn(name = "sender_account_id")
     private Account sender;
     @ManyToOne
-    @JoinColumn(name = "sender_account_id", insertable=false, updatable=false)
+    @JoinColumn(name = "receiver_account_id")
     private Account receiver;
     private Date transactionDate;
     private BigDecimal amountTransferred;
