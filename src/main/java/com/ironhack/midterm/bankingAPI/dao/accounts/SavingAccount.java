@@ -66,4 +66,8 @@ public class SavingAccount extends Account{
     public void activateAccount() {
         setStatus(Status.ACTIVE);
     }
+    @Override
+    public boolean secretKeyIsValid(String secretKey) {
+        return this.secretKey.equals(secretKey);
+    }
 }

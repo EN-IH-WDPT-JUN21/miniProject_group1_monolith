@@ -44,6 +44,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.PUT, "/api/v1/admin/**").hasAnyRole("ADMIN")
                 .mvcMatchers(HttpMethod.GET, "/api/v1/my_accounts").hasAnyRole("ACCOUNT_HOLDER")
                 .mvcMatchers(HttpMethod.POST, "/api/v1/transfer_funds").hasAnyRole("ACCOUNT_HOLDER")
-                .mvcMatchers(HttpMethod.GET, "/api/v1/savings/**").hasAnyRole("ACCOUNT_HOLDER","ADMIN");
+                .mvcMatchers(HttpMethod.GET, "/api/v1/savings/**").hasAnyRole("ACCOUNT_HOLDER","ADMIN")
+                .mvcMatchers(HttpMethod.POST, "/api/v1/third_party/**").hasAnyRole("THIRD_PARTY");
     }
 }

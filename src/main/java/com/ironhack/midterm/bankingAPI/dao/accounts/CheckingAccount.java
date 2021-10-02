@@ -54,6 +54,11 @@ public class CheckingAccount extends Account {
     }
 
     @Override
+    public boolean secretKeyIsValid(String secretKey) {
+        return this.secretKey.equals(secretKey);
+    }
+
+    @Override
     public void freezeAccount() {
         setStatus(Status.FROZEN);
     }

@@ -52,4 +52,5 @@ public class Account {
     public boolean isActive(){return true;}
     public void freezeAccount(){}
     public void activateAccount(){}
+    public boolean secretKeyIsValid(String secretKey){return false;}
 }
