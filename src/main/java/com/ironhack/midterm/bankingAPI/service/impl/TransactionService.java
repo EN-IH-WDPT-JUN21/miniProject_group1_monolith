@@ -11,6 +11,8 @@ import com.ironhack.midterm.bankingAPI.repository.transactions.TransactionReposi
 import com.ironhack.midterm.bankingAPI.service.interfaces.ITransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,7 +30,10 @@ public class TransactionService implements ITransactionService {
     @Autowired
     AccountRepository accountRepository;
 
-    public TransactionConfirmationDTO transferFunds(TransactionDTO transactionDTO, String username) {
+    public TransactionConfirmationDTO transferFunds(TransactionDTO transactionDTO) {
+        //Casting to userDetails, if we cast to Principal it gives casting error is the runtime, getPrincipal() method is confusing, it returns an object.
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
         Optional<Account> senderAccount =accountRepository.findById(transactionDTO.getSenderId());
         //validate if the sender account exists
         if (senderAccount.isEmpty()){
