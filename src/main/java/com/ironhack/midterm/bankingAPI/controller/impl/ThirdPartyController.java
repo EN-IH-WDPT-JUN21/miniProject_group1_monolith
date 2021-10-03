@@ -24,10 +24,12 @@ public class ThirdPartyController implements IThirdPartyController {
         return thirdPartyService.createThirdParty(thirdPartyDTO);
     }
     @PostMapping("/third_party/send")
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public TransactionConfirmationDTO sendFunds(@RequestBody ThirdPartyTransactionDTO thirdPartyTransactionDTO, @RequestHeader String hashedKey) {
         return thirdPartyService.sendFunds(thirdPartyTransactionDTO,hashedKey);
     }
     @PostMapping("/third_party/receive")
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public TransactionConfirmationDTO receiveFunds(@RequestBody ThirdPartyTransactionDTO thirdPartyTransactionDTO, @RequestHeader String hashedKey) {
         return thirdPartyService.receiveFunds(thirdPartyTransactionDTO,hashedKey);
     }

@@ -1,6 +1,5 @@
 package com.ironhack.midterm.bankingAPI.controller.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.midterm.bankingAPI.dao.accounts.Account;
 import com.ironhack.midterm.bankingAPI.dao.accounts.SavingAccount;
@@ -8,8 +7,7 @@ import com.ironhack.midterm.bankingAPI.dao.other.Address;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import com.ironhack.midterm.bankingAPI.dao.roles.Admin;
 import com.ironhack.midterm.bankingAPI.dao.roles.ThirdParty;
-import com.ironhack.midterm.bankingAPI.dto.ThirdPartyDTO;
-import com.ironhack.midterm.bankingAPI.dto.ThirdPartyTransactionDTO;
+import com.ironhack.midterm.bankingAPI.dto.TransactionDTO;
 import com.ironhack.midterm.bankingAPI.enums.Status;
 import com.ironhack.midterm.bankingAPI.repository.accounts.AccountRepository;
 import com.ironhack.midterm.bankingAPI.repository.accounts.SavingAccountRepository;
@@ -18,6 +16,7 @@ import com.ironhack.midterm.bankingAPI.repository.roles.AccountHolderRepository;
 import com.ironhack.midterm.bankingAPI.repository.roles.RoleRepository;
 import com.ironhack.midterm.bankingAPI.repository.roles.ThirdPartyRepository;
 import com.ironhack.midterm.bankingAPI.repository.roles.UserRepository;
+import com.ironhack.midterm.bankingAPI.repository.transactions.TransactionRepository;
 import com.ironhack.midterm.bankingAPI.security.CustomUserDetails;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +34,6 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Optional;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -43,7 +41,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-class ThirdPartyControllerTest {
+class TransactionControllerTest {
     @Autowired
     AddressRepository addressRepository;
     @Autowired
@@ -60,6 +58,8 @@ class ThirdPartyControllerTest {
     WebApplicationContext webApplicationContext;
     @Autowired
     ThirdPartyRepository thirdPartyRepository;
+    @Autowired
+    TransactionRepository transactionRepository;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -73,7 +73,9 @@ class ThirdPartyControllerTest {
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private void clearDB(){
+        transactionRepository.deleteAll();
         thirdPartyRepository.deleteAll();
+        savingAccountRepository.deleteAll();
         accountRepository.deleteAll();
         accountHolderRepository.deleteAll();
         addressRepository.deleteAll();
@@ -89,7 +91,7 @@ class ThirdPartyControllerTest {
         accountHolder1 = accountHolderRepository.save(new AccountHolder("Test1",passwordEncoder.encode("1234"),"Test Account1",new Date(111111L),address1));
         accountHolder2 = accountHolderRepository.save(new AccountHolder("Test2",passwordEncoder.encode("1234"),"Test Account2",new Date(111111L),address1));
         saving1 = savingAccountRepository.save(new SavingAccount(
-                new BigDecimal("2000"),
+                new BigDecimal("2000000"),
                 accountHolder1,
                 new BigDecimal("0.2"),
                 new BigDecimal("200"),
@@ -98,7 +100,7 @@ class ThirdPartyControllerTest {
                 Status.ACTIVE
         ));
         saving2 = savingAccountRepository.save(new SavingAccount(
-                new BigDecimal("20000"),
+                new BigDecimal("2000000"),
                 accountHolder2,
                 new BigDecimal("0.2"),
                 new BigDecimal("101"),
@@ -118,55 +120,32 @@ class ThirdPartyControllerTest {
         clearDB();
     }
 
+
+
     @Test
-    void createThirdParty_positive_3rdPartyCreated() throws Exception {
-        ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO("3rd_party_test","12345","Test 3rd party","12345");
-        MvcResult result = mockMvc
-                .perform(post("/api/v1/admin/create_third_party").with(user(new CustomUserDetails(testAdmin)))
+    void transferFunds_positive_fundsTransferred() throws Exception {
+        //Saving before test to update objects that could be modified in other tests
+        SavingAccount sender = savingAccountRepository.save(saving1);
+        SavingAccount receiver = savingAccountRepository.save(saving2);
+        BigDecimal senderBalancePreTransfer = sender.getBalance();
+        BigDecimal receiverBalancePreTransfer = receiver.getBalance();
+
+        TransactionDTO transactionDTO = new TransactionDTO(sender.getId(),receiver.getId(),new BigDecimal("100"),receiver.getPrimaryOwner().getName());
+        MvcResult result = mockMvc.perform(post("/api/v1/transfer_funds")
+                        .with(user(new CustomUserDetails(sender.getPrimaryOwner())))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(thirdPartyDTO)))
-                .andExpect(status().isCreated())
-                .andReturn();
-        String resultString = result.getResponse().getContentAsString();
-        ThirdParty resultObject = objectMapper.readValue(resultString,ThirdParty.class);
-        Assertions.assertEquals(resultObject.getName(),"Test 3rd party");
-    }
-    @Test
-    void sendFunds_positive_fundsAddedToAccount() throws Exception {
-        SavingAccount receiver = savingAccountRepository.findAll().get(0);
-        ThirdPartyTransactionDTO thirdPartyTransactionDTO = new ThirdPartyTransactionDTO(
-                receiver.getId(),
-                new BigDecimal("100"),
-                receiver.getSecretKey());
-        MvcResult result = mockMvc
-                .perform(post("/api/v1/third_party/send")
-                        .header("hashedKey", thirdPartyTestUser.getHashKey())
-                        .with(user(new CustomUserDetails(thirdPartyTestUser)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(thirdPartyTransactionDTO)))
+                        .content(objectMapper.writeValueAsString(transactionDTO)))
                 .andExpect(status().isAccepted())
                 .andReturn();
-        BigDecimal exceptedBalance = receiver.getBalance().add(thirdPartyTransactionDTO.getAmount());
-        Account accountAfterUpdate = accountRepository.findById(receiver.getId()).get();
-        Assertions.assertEquals(0,exceptedBalance.compareTo(accountAfterUpdate.getBalance()));
-    }
-    @Test
-    void receiveFunds_positive_fundsSubtractedFromTheAccount() throws Exception {
-        SavingAccount receiver = savingAccountRepository.findAll().get(0);
-        ThirdPartyTransactionDTO thirdPartyTransactionDTO = new ThirdPartyTransactionDTO(
-                receiver.getId(),
-                new BigDecimal("100"),
-                receiver.getSecretKey());
-        MvcResult result = mockMvc
-                .perform(post("/api/v1/third_party/receive")
-                        .header("hashedKey", thirdPartyTestUser.getHashKey())
-                        .with(user(new CustomUserDetails(thirdPartyTestUser)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(thirdPartyTransactionDTO)))
-                .andExpect(status().isAccepted())
-                .andReturn();
-        BigDecimal exceptedBalance = receiver.getBalance().subtract(thirdPartyTransactionDTO.getAmount());
-        Account accountAfterUpdate = accountRepository.findById(receiver.getId()).get();
-        Assertions.assertEquals(0,exceptedBalance.compareTo(accountAfterUpdate.getBalance()));
+
+        Account senderPostTransfer = accountRepository.findById(sender.getId()).get();
+        Account receiverPostTransfer = accountRepository.findById(receiver.getId()).get();
+
+        Assertions.assertEquals(0,senderBalancePreTransfer
+                .subtract(new BigDecimal("100"))
+                .compareTo(senderPostTransfer.getBalance()));
+        Assertions.assertEquals(0,receiverBalancePreTransfer
+                .add(new BigDecimal("100"))
+                .compareTo(receiverPostTransfer.getBalance()));
     }
 }
