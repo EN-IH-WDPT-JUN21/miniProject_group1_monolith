@@ -54,21 +54,21 @@ public class TransactionService implements ITransactionService {
         if (!isOwnerOfTheSenderAccount){
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You don't have access to this account!");
         }
-        //validate if the owner and secondary owner names are correct
-        boolean primaryOwnerNameIsValid = transactionDTO.getPrimaryOwnerName().equals(senderAccount.get().getPrimaryOwner().getName());
-        boolean secondaryOwnerNameIsValid = false;
-        if (transactionDTO.getSecondaryOwnerName()==null && senderAccount.get().getSecondaryOwner()==null){
-            secondaryOwnerNameIsValid = true;
-        }else if(senderAccount.get().getSecondaryOwner()!=null && senderAccount.get().getSecondaryOwner().getUsername()==transactionDTO.getSecondaryOwnerName()){
-            secondaryOwnerNameIsValid = true;
-        }
-        if (!primaryOwnerNameIsValid || !secondaryOwnerNameIsValid){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Owners names don't match!");
-        }
         //validate if the receiver exists
         Optional<Account> receiverAccount = accountRepository.findById(transactionDTO.getReceiverId());
         if (receiverAccount.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Receiver account not found!");
+        }
+        //validate if the owner and secondary owner of the receiving account names are correct
+        boolean primaryOwnerNameIsValid = transactionDTO.getPrimaryOwnerName().equals(receiverAccount.get().getPrimaryOwner().getName());
+        boolean secondaryOwnerNameIsValid = false;
+        if (transactionDTO.getSecondaryOwnerName()==null && receiverAccount.get().getSecondaryOwner()==null){
+            secondaryOwnerNameIsValid = true;
+        }else if(receiverAccount.get().getSecondaryOwner()!=null && receiverAccount.get().getSecondaryOwner().getUsername()==transactionDTO.getSecondaryOwnerName()){
+            secondaryOwnerNameIsValid = true;
+        }
+        if (!primaryOwnerNameIsValid || !secondaryOwnerNameIsValid){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Owners names don't match!");
         }
         //validate if both accounts are ACTIVE
         if (!senderAccount.get().isActive() || !receiverAccount.get().isActive()){
@@ -140,6 +140,6 @@ public class TransactionService implements ITransactionService {
         accountRepository.save(sender.get());
         accountRepository.save(receiver.get());
         //Build and return transaction confirmation
-        return TransactionConfirmationBuilder.buildForAccountHolders(transactionDTO,receiver.get().getPrimaryOwner().getName(), transaction.getTransactionDate());
+        return TransactionConfirmationBuilder.buildForAccountHolders(transactionDTO,sender.get().getPrimaryOwner().getName(), transaction.getTransactionDate());
     }
 }

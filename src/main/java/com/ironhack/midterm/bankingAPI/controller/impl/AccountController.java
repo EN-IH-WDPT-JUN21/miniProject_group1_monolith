@@ -29,6 +29,7 @@ public class AccountController implements IAccountController {
     public Account findAccountById(@PathVariable("id") Long id){
         return accountService.findAccountById(id);
     }
+
     @GetMapping("/my_accounts")
     @ResponseStatus(HttpStatus.OK)
     public List<Account> findAllUserAccounts() {

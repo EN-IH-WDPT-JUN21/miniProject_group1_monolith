@@ -8,13 +8,13 @@ import com.ironhack.midterm.bankingAPI.dto.TransactionDTO;
 import java.util.Date;
 
 public class TransactionConfirmationBuilder {
-    public static TransactionConfirmationDTO buildForAccountHolders(TransactionDTO transactionDTO, String receiverName, Date transactionDate){
+    public static TransactionConfirmationDTO buildForAccountHolders(TransactionDTO transactionDTO, String senderName, Date transactionDate){
         TransactionConfirmationDTO transactionConfirmationDTO = new TransactionConfirmationDTO();
 
         transactionConfirmationDTO.setSenderId(transactionDTO.getSenderId());
-        transactionConfirmationDTO.setSenderName(transactionDTO.getPrimaryOwnerName());
+        transactionConfirmationDTO.setSenderName(senderName);
         transactionConfirmationDTO.setReceiverId(transactionDTO.getReceiverId());
-        transactionConfirmationDTO.setReceiverName(receiverName);
+        transactionConfirmationDTO.setReceiverName(transactionDTO.getPrimaryOwnerName());
         transactionConfirmationDTO.setTransactionDate(transactionDate);
         transactionConfirmationDTO.setAmount(transactionDTO.getAmountTransferred());
 
