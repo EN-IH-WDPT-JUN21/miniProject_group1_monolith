@@ -1,5 +1,6 @@
 package com.ironhack.midterm.bankingAPI.dao.accounts;
 
+import com.ironhack.midterm.bankingAPI.dao.interfaces.HasPenaltyFee;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import com.ironhack.midterm.bankingAPI.enums.Status;
 import lombok.AllArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CheckingAccount extends Account {
+public class CheckingAccount extends Account implements HasPenaltyFee {
     private BigDecimal monthlyMaintenanceFee;
     private BigDecimal minimumBalance;
     private String secretKey;
@@ -61,5 +62,15 @@ public class CheckingAccount extends Account {
     @Override
     public void freezeAccount() {
         setStatus(Status.FROZEN);
+    }
+
+    @Override
+    public boolean balanceBelowMinimum() {
+        return getBalance().compareTo(minimumBalance)==-1;
+    }
+
+    @Override
+    public void chargeFee() {
+        setBalance(getBalance().subtract(getPenaltyFee()));
     }
 }

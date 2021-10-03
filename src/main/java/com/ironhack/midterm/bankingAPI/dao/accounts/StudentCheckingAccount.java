@@ -1,5 +1,6 @@
 package com.ironhack.midterm.bankingAPI.dao.accounts;
 
+import com.ironhack.midterm.bankingAPI.dao.interfaces.HasPenaltyFee;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import com.ironhack.midterm.bankingAPI.enums.Status;
 import lombok.AllArgsConstructor;
@@ -56,4 +57,5 @@ public class StudentCheckingAccount extends Account {
     public boolean secretKeyIsValid(String secretKey) {
         return this.secretKey.equals(secretKey);
     }
+
 }

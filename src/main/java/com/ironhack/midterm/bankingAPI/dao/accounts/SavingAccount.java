@@ -1,5 +1,6 @@
 package com.ironhack.midterm.bankingAPI.dao.accounts;
 
+import com.ironhack.midterm.bankingAPI.dao.interfaces.HasPenaltyFee;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import com.ironhack.midterm.bankingAPI.enums.Status;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SavingAccount extends Account{
+public class SavingAccount extends Account implements HasPenaltyFee {
 
     @DecimalMin(value = "0", message = "Interest rate cannot be negative")
     @DecimalMax(value = "0.5", message = "The maximum interest rate is 0.5")
@@ -69,5 +70,14 @@ public class SavingAccount extends Account{
     @Override
     public boolean secretKeyIsValid(String secretKey) {
         return this.secretKey.equals(secretKey);
+    }
+    @Override
+    public boolean balanceBelowMinimum() {
+        return getBalance().compareTo(minimumBalance)==-1;
+    }
+
+    @Override
+    public void chargeFee() {
+        setBalance(getBalance().subtract(getPenaltyFee()));
     }
 }

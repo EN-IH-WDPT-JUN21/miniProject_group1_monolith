@@ -131,6 +131,8 @@ public class TransactionService implements ITransactionService {
         }
         //subtracting funds from the sender account, it was verified that he has sufficient balance
         sender.get().setBalance(sender.get().getBalance().subtract(transactionDTO.getAmountTransferred()));
+        //Penalty Fee checkpoint
+        PenaltyFeeService.penaltyFeeChargeService(sender.get());
         //Build transaction object
         Transaction transaction = new Transaction(sender.get(),receiver.get(),transactionDTO.getAmountTransferred());
         //Save everything
