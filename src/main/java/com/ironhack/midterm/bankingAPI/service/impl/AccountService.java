@@ -2,6 +2,7 @@ package com.ironhack.midterm.bankingAPI.service.impl;
 
 import com.ironhack.midterm.bankingAPI.dao.accounts.Account;
 import com.ironhack.midterm.bankingAPI.dao.roles.User;
+import com.ironhack.midterm.bankingAPI.dto.BalanceDTO;
 import com.ironhack.midterm.bankingAPI.repository.accounts.AccountRepository;
 import com.ironhack.midterm.bankingAPI.repository.roles.UserRepository;
 import com.ironhack.midterm.bankingAPI.service.interfaces.IAccountService;
@@ -54,12 +55,12 @@ public class AccountService implements IAccountService {
         }
             return userAccounts;
     }
-    public Account updateBalanceById(Long id, BigDecimal balance) {
+    public Account updateBalanceById(Long id, BalanceDTO balanceDTO) {
         Optional<Account> account = accountRepository.findById(id);
         if (account.isEmpty()){
             throw new ResponseStatusException(BAD_REQUEST,"Account not found!");
         }else{
-            account.get().setBalance(balance);
+            account.get().setBalance(balanceDTO.getBalance());
             return accountRepository.save(account.get());
         }
     }

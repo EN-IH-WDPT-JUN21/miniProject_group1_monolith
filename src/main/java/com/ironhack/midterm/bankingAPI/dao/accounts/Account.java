@@ -1,5 +1,6 @@
 package com.ironhack.midterm.bankingAPI.dao.accounts;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,9 +49,12 @@ public class Account {
         this.primaryOwner = primaryOwner;
         this.penaltyFee = new BigDecimal("40");
     }
-
+    @JsonIgnore
     public boolean isActive(){return true;}
+    @JsonIgnore
     public void freezeAccount(){}
+    @JsonIgnore
     public void activateAccount(){}
+    @JsonIgnore
     public boolean secretKeyIsValid(String secretKey){return false;}
 }

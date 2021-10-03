@@ -6,6 +6,7 @@ import com.ironhack.midterm.bankingAPI.dao.accounts.SavingAccount;
 import com.ironhack.midterm.bankingAPI.dao.other.Address;
 import com.ironhack.midterm.bankingAPI.dao.roles.AccountHolder;
 import com.ironhack.midterm.bankingAPI.dao.roles.Admin;
+import com.ironhack.midterm.bankingAPI.dto.BalanceDTO;
 import com.ironhack.midterm.bankingAPI.enums.Status;
 import com.ironhack.midterm.bankingAPI.repository.accounts.AccountRepository;
 import com.ironhack.midterm.bankingAPI.repository.accounts.SavingAccountRepository;
@@ -33,11 +34,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -171,19 +170,41 @@ class AccountControllerTest {
 
     @Test
     void updateBalanceById() throws Exception {
-        BigDecimal updatedBalance = new BigDecimal("2345676.54");
+        BalanceDTO balanceDTO = new BalanceDTO(new BigDecimal("2345676.54"));
         Long refAccountId = accountRepository.findAll().get(0).getId();
         //unchecked optional class .get() because we got this object one line ago
         BigDecimal oldBalanceValue = accountRepository.findById(refAccountId).get().getBalance();
         MvcResult result = mockMvc
                 .perform(put("/api/v1/admin/balance/"+refAccountId).with(user(new CustomUserDetails(testAdmin)))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedBalance)))
+                .content(objectMapper.writeValueAsString(balanceDTO.getBalance())))
                 .andExpect(status().isOk())
                 .andReturn();
         String resultString = result.getResponse().getContentAsString();
         Account resultObject = objectMapper.readValue(resultString,SavingAccount.class);
-        Assertions.assertNotEquals(oldBalanceValue,updatedBalance);
-        Assertions.assertEquals(updatedBalance,resultObject.getBalance());
+        Assertions.assertNotEquals(oldBalanceValue,balanceDTO.getBalance());
+        Assertions.assertEquals(balanceDTO.getBalance(),resultObject.getBalance());
+    }
+    @Test
+    void activateAccount_positive_statusUpdated() throws Exception {
+        Account sampleAccount = new SavingAccount(
+                new BigDecimal("2000"),
+                accountHolder2,
+                new BigDecimal("0.2"),
+                new BigDecimal("200"),
+                "secKeyTest",
+                new Date(1234567L),
+                Status.FROZEN
+        );
+        SavingAccount sampleSavingAccount = (SavingAccount)accountRepository.save(sampleAccount);
+        Long sampleAccountId = sampleSavingAccount.getId();
+        mockMvc
+                .perform(patch("/api/v1/admin/activate/" + sampleAccountId).with(user(new CustomUserDetails(testAdmin))))
+                .andExpect(status().isNoContent())
+                .andReturn();
+        //update sample account
+        sampleSavingAccount = (SavingAccount)accountRepository.findById(sampleAccountId).get();
+        Assertions.assertEquals(Status.ACTIVE,sampleSavingAccount.getStatus());
+
     }
 }
