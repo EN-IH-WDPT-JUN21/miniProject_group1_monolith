@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +88,26 @@ public class TransactionService implements ITransactionService {
             accountRepository.save(senderAccount.get());
             }
         }
+        //Check for fraud, this one I modified a bit, because it would block the system if the transactions table would be empty, and you would post 2 transactions.
+        //First for 10$ and 2nd for 100$. The first would be successful because it would be the first transaction in the db.
+        //The 2nd transaction would be blocked, because the highest total of every customer would be 10, because there's only one transaction available.
+        BigDecimal LOWEST_FRAUD_DETECTION_AMOUNT = new BigDecimal("100000");
+        BigDecimal customersMaxSum = transactionRepository.getMaxDailySum();
+        BigDecimal thisCustomerTodaySum = transactionRepository.getDailySumForId(transactionDTO.getSenderId());
+        //with empty db this values can be empty
+        if (customersMaxSum != null && thisCustomerTodaySum != null){
+            //1 means that thisCustomerTodaySum is greater than customers MaxSum * 1.5 and is greater than the LOWEST_FRAUD_DETECTION_AMOUNT
+            if(
+                transactionDTO.getAmountTransferred().compareTo(LOWEST_FRAUD_DETECTION_AMOUNT)==1 &&
+                thisCustomerTodaySum.add(transactionDTO.getAmountTransferred()).compareTo(customersMaxSum.multiply(new BigDecimal("1.5")))==1
+            ){
+                    //Freeze account and save it's state
+                    senderAccount.get().freezeAccount();
+                    accountRepository.save(senderAccount.get());
+            }
+        }
+
+
         //Checking one more time, because Credit Cards cannot be frozen and the transaction continues
         if (!senderAccount.get().isActive()){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Fraud detected, freezing account");
