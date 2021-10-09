@@ -125,7 +125,8 @@ class CheckingAccountControllerTest {
     }
 
     @Test
-    void createChecking_negative_ownerNotFound() throws Exception {
+    void
+    createChecking_negative_ownerNotFound() throws Exception {
         CheckingAccountDTO checkingAccountDTO = new CheckingAccountDTO(
                 new BigDecimal("1000"),
                 999999L,
